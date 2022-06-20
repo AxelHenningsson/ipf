@@ -5,9 +5,9 @@ from ImageD11.grain import read_grain_file
 import matplotlib.pyplot as plt
 from scipy.spatial.transform import Rotation
 
-from matplotlib import rc
-rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
-rc('text', usetex=True)
+# from matplotlib import rc
+# rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
+# rc('text', usetex=True)
 
 
 class RodriguezRotator(object):
@@ -96,7 +96,7 @@ def plot_cmap( triangle_corners ):
                 if (vector - pp).dot(nn) < -1e-8:
                     in_symmetry_triangle = False
                     break
-            
+
             if in_symmetry_triangle:
                 c = np.abs( ti.dot(vector) )
                 cmap[i,j,:] = c / np.max(c)
@@ -143,7 +143,7 @@ def ipf_bounds(triangle_corners, number_of_points):
             c2 = norm_triangle_corners[0,:]
         else:
             c2 = norm_triangle_corners[i+1,:]
-        
+
         axis = np.cross(c1, c2)
         axis = axis / np.linalg.norm(axis)
         angle = np.arccos( c1.dot(c2) )
@@ -161,7 +161,7 @@ def stereographic_projection(vector):
 
         Args:
             vector (:obj:`numpy array`): shape=(3,)
-        
+
         Returns:
             x,y (:obj:`tuple` of `float`), projected coordinates in equator plane.
     """
@@ -203,12 +203,12 @@ def inverse_pole_figure(ubi_matrices, crystal_system, triangle_corners):
     symmetry_rotations = symmetry.rotations(crystal_system)
 
     for ubi in ubi_matrices:
-        
+
         u, b = tools.ub_to_u_b( np.linalg.inv(ubi) )
         #u, b = tools.ubi_to_u_b(ubi)
 
         for symrot in symmetry_rotations:
-            
+
             #u_new = symrot.dot(u)
 
             u_new = u.dot(symrot)
@@ -223,11 +223,13 @@ def inverse_pole_figure(ubi_matrices, crystal_system, triangle_corners):
                 continue
 
             if not in_symmetry_triangle(sample_axis_in_crystal, triangle_corners):
-                continue
+                pass
+
+            print(sample_axis_in_crystal)
 
             x, y = stereographic_projection(sample_axis_in_crystal)
             # th, r = cartesian_to_polar(x, y)
-        
+
             X.append( x )
             Y.append( y )
 
@@ -252,8 +254,9 @@ if __name__=='__main__':
     # ubi_matrices = [ np.linalg.inv(u.dot(B)) ]
 
     ubi_matrices=[]
+    np.random.seed(3)
     zhat = np.array([0,0,1])
-    U = Rotation.random(100).as_matrix()
+    U = Rotation.random(1).as_matrix()
     UBIs = np.linalg.inv( U.dot(B) )
     for ubi in UBIs: ubi_matrices.append(ubi)
     # for ubi in UBIs:
@@ -266,9 +269,8 @@ if __name__=='__main__':
 
     #u = np.array([[-1,0,0],[0,-1,0],[0,0,1]])
     #ubi_matrices = [ np.linalg.inv(B) ]
- 
-    sample_axis = np.array([0,0,1])
-    triangle_corners = np.array([[0,0,1], [1,1,1], [0,1,0] ])
+
+    triangle_corners = np.array([[0,0,1], [1,0,1], [1,1,1] ])
     x, y, colors = inverse_pole_figure(ubi_matrices, crystal_system=7, triangle_corners=triangle_corners)
     print(len(colors), len(colors)//24)
     #cmap, fig_cmap, ax_cmap = plot_cmap( triangle_corners )
@@ -286,7 +288,23 @@ if __name__=='__main__':
     ax.text( xc[1]-0.01, yc[1]-0.04, str(triangle_corners[1,:]).replace(' ', '').replace(']', '').replace('[', ''), fontsize=24 )
     ax.text( xc[2]-0.015, yc[2]+0.015, str(triangle_corners[2,:]).replace(' ', '').replace(']', '').replace('[', ''), fontsize=24 )
 
-    #c = ax.plot(xc, yc, 'ko', markersize=12)
+    for h in range(-3,4):
+        for k in range(-3,4):
+            for l in range(-3,4):
+                hkl = np.array([h,k,l])
+                sym = symmetry.rotations(crystal_system=7)
+
+                in_triangle = 0
+                for s in sym:
+                    v = s.dot(hkl)
+                    if in_symmetry_triangle(v, triangle_corners):
+                        in_triangle +=1
+                if in_triangle!=1:
+                    print(hkl, in_triangle)
+                    print(sym)
+
+
+
     ax.axis('off')
 
     plt.show()
