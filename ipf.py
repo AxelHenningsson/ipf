@@ -73,7 +73,7 @@ class inverse_pole_figure(object):
         fig,ax = plt.subplots(1,1, figsize=(8,8))
         ax.axis('equal')
         ax.scatter(xy[0], xy[1], c=rgb.T, s=point_size, alpha=alpha, linewidth=0)
-        ax.plot(edges[0], edges[1], 'k-')
+        ax.plot(edges[0], edges[1], 'gray')
         ax.axis('off')
         ft = self.fundamental_triangle
         xyf = self.stereographic_projection(self.fundamental_triangle)
@@ -173,6 +173,19 @@ class inverse_pole_figure(object):
 
 
 if __name__ == "__main__":
+    plt.style.use('dark_background')
     ipf = inverse_pole_figure(crystal_system='trigonal', view_axis= np.array([0,0,1]))
-    ipf.show( [Rotation.random().as_matrix().T for _ in range(1000)] )
-    ipf.colorbar()
+    #ipf.show( [Rotation.random().as_matrix().T for _ in range(1000)] )
+    #ipf.colorbar()
+
+    crystal_dict = {        'triclinic': 1,
+                                    'monoclinic': 2,
+                                    'orthorhombic': 3,
+                                    'tetragonal': 4,
+                                    'trigonal': 5,
+                                    'hexagonal': 6,
+                                    'cubic': 7    }
+
+    for key in crystal_dict:
+        ipf = inverse_pole_figure(crystal_system=key, view_axis= np.array([0,0,1]))
+        ipf.colorbar()
