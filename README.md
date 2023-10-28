@@ -6,7 +6,13 @@ in 2D while taking care to consider the symmetry of an attached point-group. It 
 crystallographic textures. It is also a wildly confusing concept wing to the fact that higher dimensional rotation elements are
 compressed into 2D coordinates and rgb-color values. This document is an attempt of me to clarify the interpretation and
 mathematical definition of the IPF. In this quest it seem use-full to implement a bare-bones version of the IPF which is what
-the code in this repository aims at.
+the code in this repository aims at. 
+
+*Discalimer: this is my interpretation of these concepts - if you find any misstakes please let me know! -*
+
+My interpretation of the stereographic-fundamental-zones
+-------------------------------------
+![image](https://github.com/AxelHenningsson/ipf/assets/31615210/75b22698-96cb-4256-863b-066a67ac1dc8)
 
 ````python
     from scipy.spatial.transform import Rotation
