@@ -60,14 +60,14 @@ class inverse_pole_figure(object):
     def colorbar(self):
         """Make and plot colorbar in the fundamental zone.
         """
-        ori = [ Rotation.random().as_matrix().T for _ in range(2000) ]
+        ori = [ Rotation.random().as_matrix().T for _ in range(1000) ]
         points = self.get_reciprocal_points( ori, filter_by_fundamental_zone=False )
         xy = self.stereographic_projection( points )
         edges = self.get_fundamental_triangle()
         rgb = self.get_colors(points)
         xmin,xmax = np.min(edges[0,:]), np.max(edges[0,:])
         ymin,ymax = np.min(edges[1,:]), np.max(edges[1,:])
-        grid_x, grid_y = np.meshgrid(np.linspace(xmin, xmax, 128), np.linspace(ymin, ymax, 128), indexing='ij')
+        grid_x, grid_y = np.meshgrid(np.linspace(xmin, xmax, 64), np.linspace(ymin, ymax, 64), indexing='ij')
 
         mask = np.zeros( grid_x.shape,  dtype=bool)
         for i in range(grid_x.shape[0]):
@@ -75,19 +75,19 @@ class inverse_pole_figure(object):
                 mask[i,j] = Point( [grid_x[i,j], grid_y[i,j]] ).within( self._p )
 
         grid_z1 = griddata(xy.T, rgb.T, (grid_x, grid_y), method='linear')
-        grid_z1[~mask] = np.nan
+        grid_z1[~mask] = 0
 
         fig,ax = plt.subplots(1,1, figsize=(9,9))
         ax.axis('equal')
         ax.plot(edges[0], edges[1], 'gray', linewidth=int(10*64./grid_y.shape[0]))
         ax.axis('off')
-        plt.pcolormesh(grid_x, grid_y, grid_z1)
+        plt.pcolormesh(grid_x, grid_y, grid_z1, shading='nearest')
         ft = self.fundamental_triangle
         xyf = self.stereographic_projection(self.fundamental_triangle)
         ax.annotate( str(ft[0,0])+' '+str(ft[1,0])+' '+str(ft[2,0]), (xyf[0,0]+0.01,xyf[1,0]-0.01), fontsize=20, annotation_clip=False )
         ax.annotate( str(ft[0,1])+' '+str(ft[1,1])+' '+str(ft[2,1]), (xyf[0,1]-0.01,xyf[1,1]+0.01), fontsize=20, annotation_clip=False)
         ax.annotate( str(ft[0,2])+' '+str(ft[1,2])+' '+str(ft[2,2]), (xyf[0,2]+0.01,xyf[1,2]+0.01), fontsize=20 , annotation_clip=False)
-        plt.show()
+        return fig, ax
 
 
     def show( self, ubi_matrices, point_size=50, alpha=1 ):
@@ -115,7 +115,7 @@ class inverse_pole_figure(object):
         ax.annotate( str(ft[0,1])+' '+str(ft[1,1])+' '+str(ft[2,1]), (xyf[0,1]-0.01,xyf[1,1]+0.01), fontsize=20, annotation_clip=False)
         ax.annotate( str(ft[0,2])+' '+str(ft[1,2])+' '+str(ft[2,2]), (xyf[0,2]+0.01,xyf[1,2]+0.01), fontsize=20 , annotation_clip=False)
         va = self.view_axis
-        plt.show()
+        return fig, ax
 
     def get_fundamental_triangle(self, resolution = 100 ):
         """Generate points on the boundary of the fundamental zone
@@ -156,7 +156,7 @@ class inverse_pole_figure(object):
         pn = points /norm
         s = (plane_z_offset - pole[2]) / (pole[2] - pn[2,:])
         projection = (pole + s*(pole - pn))
-        return projection
+        return projection[0:2,:]
 
     def get_colors(self, points):
         """Compute the IPF color of a set of 2D points.
@@ -175,7 +175,8 @@ class inverse_pole_figure(object):
             :obj:`numpy array`: 3xN array of RGB-color values.
         """
         uvw = np.linalg.lstsq( self.fundamental_triangle, points, rcond=-1 )[0]
-        return ( uvw - np.min(uvw, axis=0)  ) / ( np.max(uvw- np.min(uvw, axis=0), axis=0))
+        uvw = uvw - np.min(uvw, axis=0)
+        return ( uvw  ) / ( np.max(uvw, axis=0))
 
     def _filter_fundamental_zone(self, points, number_of_orientations):
         """Remove projected points not in the fundamental zone.
