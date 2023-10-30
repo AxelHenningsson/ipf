@@ -12,26 +12,28 @@ the code in this repository aims at.
 
 Example
 -------------------------------------
-Lets create 100 random orientation matrices, just to have somethign to plot
+Lets create 100 random crystal cell matrices, just to have something to plot
 ````python
 from scipy.spatial.transform import Rotation
-random_orientations = [Rotation.random().as_matrix().T for _ in range(1000)]
+random_ubis = [Rotation.random().as_matrix().T for _ in range(1000)]
 ````
 Next, we create an inverse pole figure object in the trigonal crystal system. We specify the sample normal direction with the `view_axis` keyword. In this example we are looking at the texture with respect tot he sample **z**-axis.
 ````python
-    from ipf import inverse_pole_figure
-    ipf = inverse_pole_figure(crystal_system='trigonal', view_axis= np.array([0,0,1]))
+    from ipf.pole_figure import inverse_pole_figure
+    crystal_system ='cubic'
+    view_axis = np.array([0,0,1])
+    ipf = inverse_pole_figure(crystal_system, view_axis)
 ````
 We can now visualise the data we created in an IPF using the `show()` command. Since the texure is uniform, the IPF has data points scattered over the full area of the *"stereographic-fundamental zone"*.
 ````python
-    ipf.show( random_orientations )
+    ipf.show( random_ubis )
 ````
 ![image](https://github.com/AxelHenningsson/ipf/assets/31615210/c77359e8-3869-44c0-ae88-937f8e15c331)
 We may also produce a colorbar that covers the *"stereographic-fundamental zone"* using the  `colorbar()` command
 ````python
     ipf.colorbar()
 ````
-IN the next section the result of this `colorbar()` command on each of the 7 crystal systems is shown.
+In the next section the result of this `colorbar()` command on each of the 7 crystal systems is shown. More demos can be found as notebooks in the demos/ folder.
 
 My interpretation of the stereographic-fundamental-zones
 -------------------------------------

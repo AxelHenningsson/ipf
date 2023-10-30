@@ -7,14 +7,38 @@ from scipy.spatial.transform import Rotation
 
 class inverse_pole_figure(object):
 
+    """An inverse pole figure (IPF).
+
+    The IPF computes stereographic projections of reciprocal points and plots these in a fundamental zone.
+
+    Stereographic projection is here defined with z=[0,0,1] as pole and z=-1 as projection plane.
+
+    Args:
+        crystal_system (:obj:`str`): One of triclinic, monoclinic, orthorhombic, tetragonal, trigonal
+            hexagonal or cubic. The symmetry of the crystal_system is used in the creation of the ipf.
+        view_axis (:obj:`numpy array`): The real space axis to which the ipf is related, shape=(3,)
+        fundamental_triangle (:obj:`numpy array`): Corners of the zone in the z=-1 plane inside which the
+            any reciprocal point will be stereographically projected exactly once - when taking the symmetry of
+            the crystal into account.
+
+    Attributes:
+        crystal_system (:obj:`str`): One of triclinic, monoclinic, orthorhombic, tetragonal, trigonal
+            hexagonal or cubic. The symmetry of the crystal_system is used in the creation of the ipf.
+        view_axis (:obj:`numpy array`): The real space axis to which the ipf is related, shape=(3,)
+        fundamental_triangle (:obj:`numpy array`): Corners of the zone in the z=-1 plane inside which the
+            any reciprocal point will be stereographically projected exactly once - when taking the symmetry of
+            the crystal into account.
+
+    """
+
     def __init__(self, crystal_system, view_axis):
-        crystal_dict = {        'triclinic': 1,
-                                'monoclinic': 2,
-                                'orthorhombic': 3,
-                                'tetragonal': 4,
-                                'trigonal': 5,
-                                'hexagonal': 6,
-                                'cubic': 7    }
+        crystal_dict = { 'triclinic': 1,
+                        'monoclinic': 2,
+                        'orthorhombic': 3,
+                        'tetragonal': 4,
+                        'trigonal': 5,
+                        'hexagonal': 6,
+                        'cubic': 7    }
 
         fundamental_dict = {
             'triclinic': [(-1,0,0), (1, 1, 0), (1, -1, 0)],
@@ -27,13 +51,15 @@ class inverse_pole_figure(object):
             }
 
         self.crystal_system = crystal_system
-        self.P = xfab.symmetry.permutations(crystal_dict[crystal_system])
+        self._P = xfab.symmetry.permutations(crystal_dict[crystal_system])
         self.view_axis = view_axis / np.linalg.norm(view_axis)
         self.fundamental_triangle = np.array(fundamental_dict[crystal_system]).T
 
         self._p = Polygon( self.get_fundamental_triangle(resolution=150).T )
 
     def colorbar(self):
+        """Make and plot colorbar in the fundamental zone.
+        """
         ori = [ Rotation.random().as_matrix().T for _ in range(2000) ]
         points = self.get_reciprocal_points( ori, filter_by_fundamental_zone=False )
         xy = self.stereographic_projection( points )
@@ -65,6 +91,14 @@ class inverse_pole_figure(object):
 
 
     def show( self, ubi_matrices, point_size=50, alpha=1 ):
+        """Plot the IPF given a set of ubi matrices.
+
+        Args:
+            ubi_matrices (:obj:`list` of `numpy array`): 3x3 matrices mapping from reciprocal to real space.
+                The must map a reciprocal vector v_hkl to the same coordinate system as the view_axis.
+            point_size (int, optional): scatter point point-size in plot. Defaults to 50.
+            alpha (int, optional): scatter point transparency in plot. Defaults to 1.
+        """
         points = self.get_reciprocal_points( ubi_matrices )
         xy = self.stereographic_projection( points )
         edges = self.get_fundamental_triangle()
@@ -84,6 +118,14 @@ class inverse_pole_figure(object):
         plt.show()
 
     def get_fundamental_triangle(self, resolution = 100 ):
+        """Generate points on the boundary of the fundamental zone
+
+        Args:
+            resolution (int, optional): Number of points to generate on fundamental zone boundary. Defaults to 100.
+
+        Returns:
+            :obj:`numpy array`: 2xN array of boundary points in the z=-1 plane.
+        """
         t = np.linspace(0, 1, resolution)
         U = self.fundamental_triangle[:,0:1]
         V = self.fundamental_triangle[:,1:2]
@@ -99,44 +141,45 @@ class inverse_pole_figure(object):
         return self.stereographic_projection(points)
 
     def stereographic_projection(self, points):
-        """pole at z=-1, plane at z=0
+        """Project 3D points unto the z=-1 plane using z=[0,0,1] as pole.
+
+        Args:
+            points (:obj:`numpy array`): 3,N array of 3D points.
+
+        Returns:
+            :obj:`numpy array`: 2xN array of boundary points in the z=-1 plane.
         """
-
-        assert points.shape[0]==3
-
-        if points.shape==(3,):
-            p = points.copy().reshape(3,1)
-        else:
-            p = points.copy()
-
         plane_z_offset = 0
         pole = np.array([0, 0, -1]).reshape(3, 1)
-        norm = np.linalg.norm(p, axis=0)
+        norm = np.linalg.norm(points, axis=0)
         norm[norm==0]=1
-        pn = p /norm
-
+        pn = points /norm
         s = (plane_z_offset - pole[2]) / (pole[2] - pn[2,:])
-
         projection = (pole + s*(pole - pn))
-
-        if projection.shape[1]==1:
-            return projection[0:2].flatten()
-        else:
-            return projection[0:2, :]
+        return projection
 
     def get_colors(self, points):
-        if points.shape==(3,):
-            p = points.copy().reshape(3,1)
-        else:
-            p = points.copy()
-        uvw = np.linalg.lstsq( self.fundamental_triangle, points, rcond=-1 )[0]
+        """Compute the IPF color of a set of 2D points.
 
-        if len(uvw.shape)==1:
-            return ( uvw - np.min(uvw) ) / np.max( uvw-np.min(uvw) )
-        else:
-            return ( uvw - np.min(uvw, axis=0)  ) / ( np.max(uvw- np.min(uvw, axis=0), axis=0))
+        The color is selected as the normalised solution to
+
+            p = r*t1 + g*t2 + c*t3
+
+        where p is the input point, r,g,b the un-normalised color value,
+        and t1,t2,t3 are the corners of the fundamental triangle/zone.
+
+        Args:
+            points (:obj:`numpy array`): 3xN array of 3D points.
+
+        Returns:
+            :obj:`numpy array`: 3xN array of RGB-color values.
+        """
+        uvw = np.linalg.lstsq( self.fundamental_triangle, points, rcond=-1 )[0]
+        return ( uvw - np.min(uvw, axis=0)  ) / ( np.max(uvw- np.min(uvw, axis=0), axis=0))
 
     def _filter_fundamental_zone(self, points, number_of_orientations):
+        """Remove projected points not in the fundamental zone.
+        """
 
         xy = self.stereographic_projection(points)
 
@@ -159,33 +202,26 @@ class inverse_pole_figure(object):
 
         return points[:, mask]
 
-    def get_reciprocal_points(self, orientations, filter_by_fundamental_zone=True):
+    def get_reciprocal_points(self, ubi_matrices, filter_by_fundamental_zone=True):
+        """_summary_
+
+        Args:
+            ubi_matrices (:obj:`list` of `numpy array`): 3x3 matrices mapping from reciprocal to real space.
+                The must map a reciprocal vector v_hkl to the same coordinate system as the view_axis.
+            filter_by_fundamental_zone (bool, optional): If False points outside the fundamental zone are preserved. 
+                Defaults to True.
+
+        Returns:
+            :obj:`numpy array`: 3xN array of reciprocal points. These correspond to the points gerenated by applying
+            the ubi matrices to the view_axis. I.e they are the reciprocal system view_axes.
+        """
         points = []
-        for U in orientations:
-            hkl = U.T @ self.view_axis
-            points.extend( list(self.P @ hkl) )
+        for ubi in ubi_matrices:
+            hkl = ubi @ self.view_axis
+            points.extend( list(self._P @ hkl) )
         points = np.array(points).T
         points = np.concatenate( (points, -points), axis=1 )
         if filter_by_fundamental_zone:
-            return self._filter_fundamental_zone(points, len(orientations))
+            return self._filter_fundamental_zone(points, len(ubi_matrices))
         else:
             return points
-
-
-if __name__ == "__main__":
-    plt.style.use('dark_background')
-    ipf = inverse_pole_figure(crystal_system='trigonal', view_axis= np.array([0,0,1]))
-    #ipf.show( [Rotation.random().as_matrix().T for _ in range(1000)] )
-    #ipf.colorbar()
-
-    crystal_dict = {        'triclinic': 1,
-                                    'monoclinic': 2,
-                                    'orthorhombic': 3,
-                                    'tetragonal': 4,
-                                    'trigonal': 5,
-                                    'hexagonal': 6,
-                                    'cubic': 7    }
-
-    for key in crystal_dict:
-        ipf = inverse_pole_figure(crystal_system=key, view_axis= np.array([0,0,1]))
-        ipf.colorbar()
