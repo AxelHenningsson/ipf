@@ -84,9 +84,9 @@ class inverse_pole_figure(object):
         plt.pcolormesh(grid_x, grid_y, grid_z1, shading='nearest')
         ft = self.fundamental_triangle
         xyf = self.stereographic_projection(self.fundamental_triangle)
-        ax.annotate( str(ft[0,0])+' '+str(ft[1,0])+' '+str(ft[2,0]), (xyf[0,0]+0.01,xyf[1,0]-0.01), fontsize=20, annotation_clip=False )
-        ax.annotate( str(ft[0,1])+' '+str(ft[1,1])+' '+str(ft[2,1]), (xyf[0,1]-0.01,xyf[1,1]+0.01), fontsize=20, annotation_clip=False)
-        ax.annotate( str(ft[0,2])+' '+str(ft[1,2])+' '+str(ft[2,2]), (xyf[0,2]+0.01,xyf[1,2]+0.01), fontsize=20 , annotation_clip=False)
+        ax.annotate( str(ft[0,0])+' '+str(ft[1,0])+' '+str(ft[2,0]), (xyf[0,0]+0.01,xyf[1,0]-0.01), fontsize=20, annotation_clip=False, color='gray' )
+        ax.annotate( str(ft[0,1])+' '+str(ft[1,1])+' '+str(ft[2,1]), (xyf[0,1]-0.01,xyf[1,1]+0.01), fontsize=20, annotation_clip=False, color='gray')
+        ax.annotate( str(ft[0,2])+' '+str(ft[1,2])+' '+str(ft[2,2]), (xyf[0,2]+0.01,xyf[1,2]+0.01), fontsize=20 , annotation_clip=False, color='gray')
         return fig, ax
 
 
@@ -111,9 +111,9 @@ class inverse_pole_figure(object):
         ax.axis('off')
         ft = self.fundamental_triangle
         xyf = self.stereographic_projection(self.fundamental_triangle)
-        ax.annotate( str(ft[0,0])+' '+str(ft[1,0])+' '+str(ft[2,0]), (xyf[0,0]+0.01,xyf[1,0]-0.01), fontsize=20 , annotation_clip=False)
-        ax.annotate( str(ft[0,1])+' '+str(ft[1,1])+' '+str(ft[2,1]), (xyf[0,1]-0.01,xyf[1,1]+0.01), fontsize=20, annotation_clip=False)
-        ax.annotate( str(ft[0,2])+' '+str(ft[1,2])+' '+str(ft[2,2]), (xyf[0,2]+0.01,xyf[1,2]+0.01), fontsize=20 , annotation_clip=False)
+        ax.annotate( str(ft[0,0])+' '+str(ft[1,0])+' '+str(ft[2,0]), (xyf[0,0]+0.01,xyf[1,0]-0.01), fontsize=20 , annotation_clip=False, color='gray')
+        ax.annotate( str(ft[0,1])+' '+str(ft[1,1])+' '+str(ft[2,1]), (xyf[0,1]-0.01,xyf[1,1]+0.01), fontsize=20, annotation_clip=False, color='gray')
+        ax.annotate( str(ft[0,2])+' '+str(ft[1,2])+' '+str(ft[2,2]), (xyf[0,2]+0.01,xyf[1,2]+0.01), fontsize=20 , annotation_clip=False, color='gray')
         va = self.view_axis
         return fig, ax
 
@@ -174,14 +174,24 @@ class inverse_pole_figure(object):
         Returns:
             :obj:`numpy array`: 3xN array of RGB-color values.
         """
-        uvw = np.linalg.lstsq( self.fundamental_triangle, points, rcond=-1 )[0]
+        # O = np.array([1,2,3]).reshape(3,1)
+        # o = self.stereographic_projection(O)
+        # t = self.stereographic_projection(self.fundamental_triangle)
+        # OR = o - t[:,0:1]
+        # OG = o - t[:,1:2]
+        # OB = o - t[:,2:3]
+
+        # xy = self.stereographic_projection(points)
+        # r = 
+
+        M = self.fundamental_triangle / np.linalg.norm(self.fundamental_triangle, axis=0)
+        uvw = np.linalg.lstsq( M, points, rcond=-1 )[0]
         uvw = uvw - np.min(uvw, axis=0)
         return ( uvw  ) / ( np.max(uvw, axis=0))
 
     def _filter_fundamental_zone(self, points, number_of_orientations):
         """Remove projected points not in the fundamental zone.
         """
-
         xy = self.stereographic_projection(points)
 
         edges = self.get_fundamental_triangle( resolution=60 )
