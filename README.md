@@ -10,6 +10,10 @@ the code in this repository aims at.
 
 *Discalimer: this is my interpretation of these concepts - if you find any misstakes please let me know! -*
 
+**Note** *the color coding is currently non-optimal, future persepectives should go in this direction:*
+
+[Area-preserving colour coding of inverse pole figure domain. KARTHIKEYAN, T. (2017) Journal of Microscopy, 267: 107-113.](https://doi.org/10.1111/jmi.12578)
+
 Example
 -------------------------------------
 Lets create 100 random crystal cell matrices, just to have something to plot
@@ -37,7 +41,8 @@ We may also produce a colorbar that covers the *"stereographic-fundamental zone"
 ````
 In the next section the result of this `colorbar()` command on each of the 7 crystal systems is shown. Note that the color coding is non-optimal in this implementation, future persepectives should go in this direction:
 
-Area-preserving colour coding of inverse pole figure domain, https://doi.org/10.1111/jmi.12578
+[Area-preserving colour coding of inverse pole figure domain. KARTHIKEYAN, T. (2017) Journal of Microscopy, 267: 107-113.](https://doi.org/10.1111/jmi.12578)
+
 
 More demos can be found as notebooks in the demos/ folder.
 
@@ -45,7 +50,15 @@ My interpretation of the stereographic-fundamental-zones
 -------------------------------------
 ![image](https://github.com/AxelHenningsson/ipf/assets/31615210/75b22698-96cb-4256-863b-066a67ac1dc8)
 
+Algorithm & Interpretation
+-------------------------------------
+To create the inverse pole figures there are five essental steps taken:
 
+1. An  input ubi matrix mapps a fixed real space point to a reciprocal point. The ubi matrix is just that the 3x3 matrix that maps from the reciprocal space to the real. We call the fixed point the "view axis". The choice of view axis determines how the IPF should be interpreted.
+2. The Reciprocal point is now normalised and mapped to a 2D plane at a fixed z=-1 position [using a stereographc projection](https://en.wikipedia.org/wiki/Stereographic_projection). (The pole is z=1 in this implementation.)
+3. If the point is in the fundamental zone (this is the corners of a spherical triangle) defined by the crystal symmetry we keep the point around. (Due to the crystal symmetry the ubi matrix is not unique)
+4. The 2D projected point is mapped to an RGB color value. In this project we use a simple, but non optimal map as: p = r x t1 + g x t2 + b x t3, where p is the input point, r,g,b the un-normalised color value and t1,t2,t3 are the spherical-corners of the fundamental triangle. we normalise the rgb value by subtracting the minimum and then dividing with the maximum. Better colormaps exists: [Area-preserving colour coding of inverse pole figure domain. KARTHIKEYAN, T. (2017) Journal of Microscopy, 267: 107-113.](https://doi.org/10.1111/jmi.12578). Not that when the r=1 and g=b=0 we have p=t1 and so red will mean that the ubi matrix is mapping the view axis to the first corner of the fundamental zone.
+5. We may now plot the 2D points and their color along with the boundaries of the fundamental zone. That is an IPF. The position and color in the IPF is displaying which reciprocal point the the ubi matrix is mappining the view axis to. In crystalography this can be though of as a measure of set of Miller planes that have a normal that is aligned with the view axis.
 
 Installation
 -------------------------------------
