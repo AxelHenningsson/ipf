@@ -33,7 +33,7 @@ We can now visualise the data we created in an IPF using the `show()` command. S
     fig, ax = ipf.show( random_ubis )
     plt.show()
 ````
-![image](https://github.com/AxelHenningsson/ipf/assets/31615210/40d9f096-e7a7-443c-b6db-2bd3453448ee)
+![image](https://github.com/AxelHenningsson/ipf/assets/31615210/7d5e9365-f494-46b6-907a-1e5e6230cf46)
 We may also produce a colorbar that covers the *"stereographic-fundamental zone"* using the  `colorbar()` command
 ````python
     fig, ax = ipf.colorbar()
