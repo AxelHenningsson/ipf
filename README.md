@@ -19,21 +19,27 @@ random_ubis = [Rotation.random().as_matrix().T for _ in range(1000)]
 ````
 Next, we create an inverse pole figure object in the trigonal crystal system. We specify the sample normal direction with the `view_axis` keyword. In this example we are looking at the texture with respect tot he sample **z**-axis.
 ````python
-    from ipf.pole_figure import inverse_pole_figure
+    from ipf.pole_figures import inverse_pole_figure
     crystal_system ='cubic'
     view_axis = np.array([0,0,1])
     ipf = inverse_pole_figure(crystal_system, view_axis)
 ````
 We can now visualise the data we created in an IPF using the `show()` command. Since the texure is uniform, the IPF has data points scattered over the full area of the *"stereographic-fundamental zone"*.
 ````python
-    ipf.show( random_ubis )
+    fig, ax = ipf.show( random_ubis )
+    plt.show()
 ````
 ![image](https://github.com/AxelHenningsson/ipf/assets/31615210/40d9f096-e7a7-443c-b6db-2bd3453448ee)
 We may also produce a colorbar that covers the *"stereographic-fundamental zone"* using the  `colorbar()` command
 ````python
-    ipf.colorbar()
+    fig, ax = ipf.colorbar()
+    plt.show(
 ````
-In the next section the result of this `colorbar()` command on each of the 7 crystal systems is shown. More demos can be found as notebooks in the demos/ folder.
+In the next section the result of this `colorbar()` command on each of the 7 crystal systems is shown. Note that the color coding is non-optimal in this implementation, future persepectives should go in this direction:
+
+Area-preserving colour coding of inverse pole figure domain, https://doi.org/10.1111/jmi.12578
+
+More demos can be found as notebooks in the demos/ folder.
 
 My interpretation of the stereographic-fundamental-zones
 -------------------------------------
