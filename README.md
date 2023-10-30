@@ -1,4 +1,4 @@
-A bare-bones implementation of - Inverse Pole Figures
+**Inverse Pole Figures** - *A Bare-bones Educational Implementation*
 -------------------------------------
 
 An inverse pole figure (IPF) is a way to plot rotation data (elements in SO3, i.e., 3x3 rotation matrices, tuples of euler angles, etc.)
@@ -28,7 +28,7 @@ We can now visualise the data we created in an IPF using the `show()` command. S
 ````python
     ipf.show( random_ubis )
 ````
-![image](https://github.com/AxelHenningsson/ipf/assets/31615210/c77359e8-3869-44c0-ae88-937f8e15c331)
+![image](https://github.com/AxelHenningsson/ipf/assets/31615210/40d9f096-e7a7-443c-b6db-2bd3453448ee)
 We may also produce a colorbar that covers the *"stereographic-fundamental zone"* using the  `colorbar()` command
 ````python
     ipf.colorbar()
