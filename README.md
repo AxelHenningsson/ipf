@@ -48,7 +48,7 @@ More demos can be found as notebooks in the demos/ folder.
 
 My interpretation of the stereographic-fundamental-zones
 -------------------------------------
-![image](https://github.com/AxelHenningsson/ipf/assets/31615210/75b22698-96cb-4256-863b-066a67ac1dc8)
+![image](https://github.com/AxelHenningsson/ipf/assets/31615210/aeeb3580-023a-489f-ae42-837521aae91d)
 
 Algorithm & Interpretation
 -------------------------------------
